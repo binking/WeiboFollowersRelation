@@ -58,7 +58,11 @@ class WeiboFollowSpider(WeiboSpider):
         # Parse game is on !!!
         parser = bs(self.page, "html.parser")
         print 'Parsing page: %s' % self.url
-        name_script =  [sc for sc in parser.find_all('script') if 'pf_username' in sc.text]
+        try:
+            name_script =  [sc for sc in parser.find_all('script') if 'pf_username' in sc.text]
+        except IndexError as e:
+            print str(e)
+            print >>open('./html/unknown_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), parser
         target_script = [sc for sc in parser.find_all('script') if 'follow_list' in sc.text]
         if not (target_script and name_script):
             print >>open('./html/whole_parse_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), parser
