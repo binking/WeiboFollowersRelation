@@ -36,10 +36,11 @@ class WeiboFollowWriter(DBAccesor):
         select_user_sql = """
             SELECT DISTINCT wu.weibo_user_url 
             FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu
-            WHERE t.id in (21520,1016,23952,8180,21362,7031)
-            AND t.topic_url = tw.topic_url
+            # WHERE t.id in (21520,1016,23952,8180,21362,7031)
+            WHERE t.topic_url = tw.topic_url
             AND tw.weibo_url = wc.weibo_url
             AND wc.weibocomment_author_url = wu.weibo_user_url
+            AND wu.createdate > '2016-12-01'
         """
         conn = self.connect_database()
         cursor1 = conn.cursor()
