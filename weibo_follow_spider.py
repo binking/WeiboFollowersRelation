@@ -110,8 +110,8 @@ class WeiboFollowSpider(WeiboSpider):
                 info_dict['url'] = '/'.join(self.url.split('/')[:-1])
                 info_dict['date'] = dt.now().strftime("%Y-%m-%d %H:%M:%S")
                 follow_list.append(info_dict)
-                for k, v in info_dict.items():
-                    print k, v
+                # for k, v in info_dict.items():
+                #     print k, v
             except Exception as e:
                 print dt.now().strftime("%Y-%m-%d %H:%M:%S"), str(e)
         return follow_list

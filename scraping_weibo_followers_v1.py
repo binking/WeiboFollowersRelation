@@ -58,8 +58,8 @@ def user_info_generator(jobs, results, rconn):
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
-            spider.use_cookie_from_curl(TEST_CURL_SER)
+            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             f_list = spider.get_user_follow_list()
             if f_list:
@@ -73,8 +73,8 @@ def user_info_generator(jobs, results, rconn):
                         blogs=follow.get('blogs', ''), focus=follow.get('follows', ''),
                         type=follow.get('type', ''), followid=follow['usercard'],
                         date=follow['date'], status='Y')
-                # format sql and push them into result queue
-                results.put('%s||%s' % (d_sql, i_sql))
+                    # format sql and push them into result queue
+                    results.put('%s||%s' % (d_sql, i_sql))
                 # cresults.rpush('%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             jobs.put(job) # put job back
@@ -118,13 +118,14 @@ def add_jobs(target, rconn):
             account = pick_rand_ele_from_list(all_account)
             spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.add_request_header()
-            spider.use_cookie_from_curl(TEST_CURL_SER)
+            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             for ind in range(spider.get_max_page_no()):
                 # target.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
                 target.put('%s/follow?page=%d' % (job, ind+1))
-            if todo > 2:
-                break
+            # if todo > 2:
+            #    break
         except Exception as e:
             print e
     return todo
@@ -146,7 +147,7 @@ def run_all_worker():
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
         num_of_users = add_jobs(jobs, r)
         print "<"*10,
-        print "There are %d users to process" % num_of_users, 
+        print "There are %d users to traverse" % num_of_users, 
         print ">"*10
         jobs.join()
         results.join()
