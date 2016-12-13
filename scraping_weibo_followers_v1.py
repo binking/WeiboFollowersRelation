@@ -48,7 +48,8 @@ def user_info_generator(jobs, results, rconn):
         res = {}
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
         try:
-            job = jobs.lpop(JOBS_QUEUE)   # blpop 获取队列数据
+            # job = jobs.lpop(JOBS_QUEUE)   # blpop 获取队列数据
+            job = jobs.get()
             all_account = rconn.hkeys(MANUAL_COOKIES)
             if not all_account:  # no any weibo account
                 raise Exception('All of your accounts were Freezed')
@@ -73,7 +74,8 @@ def user_info_generator(jobs, results, rconn):
                         type=follow.get('type', ''), followid=follow['usercard'],
                         date=follow['date'], status='Y')
                 # format sql and push them into result queue
-                results.rpush('%s||%s' % (d_sql, i_sql))  # push ele to the tail
+                results.put('%s||%s' % (d_sql, i_sql))
+                # cresults.rpush('%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             jobs.put(job) # put job back
             print 'Raised in gen process', str(e)
@@ -88,7 +90,8 @@ def user_db_writer(results):
     dao = WeiboFollowWriter(USED_DATABASE)
     while True:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
-        res = results.lpop(results)
+        # res = results.lpop(results)
+        res = results.get(results)
         try:
             if not res:
                 continue
@@ -96,7 +99,8 @@ def user_db_writer(results):
             dao.insert_follow_into_db(d_sql, i_sql)
         except Exception as e:  # won't let you died
             print 'Raised in write process', str(e)
-            results.rpush('%s||%s' % (d_sql, i_sql))
+            # results.rpush('%s||%s' % (d_sql, i_sql))
+            results.put('%s||%s' % (d_sql, i_sql))
         results.task_done()
 
 
@@ -112,12 +116,13 @@ def add_jobs(target, rconn):
             if not all_account:  # no any weibo account
                 raise Exception('All of your accounts were Freezed')
             account = pick_rand_ele_from_list(all_account)
-            spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
+            spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.add_request_header()
             spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             for ind in range(spider.get_max_page_no()):
-                target.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
+                # target.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
+                target.put('%s/follow?page=%d' % (job, ind+1))
             if todo > 2:
                 break
         except Exception as e:
@@ -130,8 +135,10 @@ def run_all_worker():
         # load weibo account into redis cache
         r = redis.StrictRedis(**USED_REDIS)
         # Producer is on !!!
-        jobs = redis.StrictRedis(**USED_REDIS)  # list
-        results = redis.StrictRedis(**USED_REDIS)  # list
+        # jobs = redis.StrictRedis(**USED_REDIS)  # list
+        # results = redis.StrictRedis(**USED_REDIS)  # list
+        jobs = mp.JoinableQueue()
+        results = mp.JoinableQueue()
         create_processes(user_info_generator, (jobs, results, r), 4)
         create_processes(user_db_writer, (results, ), 8)
 
@@ -143,15 +150,15 @@ def run_all_worker():
         print ">"*10
         jobs.join()
         results.join()
-        print "+"*10, "jobs' length is ", jobs.llen(JOBS_QUEUE)
-        print "+"*10, "results' length is ", jobs.llen(JOBS_QUEUE)
+        print "+"*10, "jobs' length is ", jobs.qsize() # jobs.llen(JOBS_QUEUE)
+        print "+"*10, "results' length is ", results.qsize() # jobs.llen(JOBS_QUEUE)
     except Exception as e:
         traceback.print_exc()
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Exception raise in runn all Work"
     except KeyboardInterrupt:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Interrupted by you and quit in force, but save the results"
-        print "+"*10, "jobs' length is ", jobs.llen(JOBS_QUEUE)
-        print "+"*10, "results' length is ", jobs.llen(JOBS_QUEUE)
+        print "+"*10, "jobs' length is ", jobs.qsize() #jobs.llen(JOBS_QUEUE)
+        print "+"*10, "results' length is ", results.qsize() #jobs.llen(JOBS_QUEUE)
 
 
 def single_process():
