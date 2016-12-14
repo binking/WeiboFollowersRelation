@@ -63,9 +63,6 @@ class WeiboFollowWriter(DBAccesor):
                 # yield res[0]
                 todo_list.append(res[0])
         return todo_list
-<<<<<<< HEAD
-    
-=======
         '''
         select_user_sql = """
             SELECT count(DISTINCT wu.weibo_user_url)
@@ -88,5 +85,3 @@ class WeiboFollowWriter(DBAccesor):
         for res in cursor.fetchall():
             yield res[0]
 
-
->>>>>>> bcf1a3509ed8b1fe80799c4244527d29f24706ac
