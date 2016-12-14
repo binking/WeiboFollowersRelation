@@ -137,6 +137,8 @@ def run_all_worker():
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
+        job_pool.close()
+        result_pool.close()
         job_pool.join()
         result_pool.join()
     except Exception as e:
