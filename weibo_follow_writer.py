@@ -44,10 +44,23 @@ class WeiboFollowWriter(DBAccesor):
             ORDER BY wu.id desc 
             -- AND wu.id % 3 = 0
         """
+        select_existed_user = """
+            SELECT DISTINCT weibo_user_url
+            FROM weibouserfollows
+            WHERE is_up2date='Y'
+        """
         conn = self.connect_database()
         cursor1 = conn.cursor()
+        cursor2 = conn.cursor()
         cursor1.execute(select_user_sql)
+        cursor2.execute(select_existed_user)
+        done_list = []
+        todo_list = []
+        for res in cursor2.fetchall():
+            done_list.append(res[0])
         for res in cursor1.fetchall():
-            # if res[0] not in done_list:
-            yield res[0]
+            if res[0] not in done_list:
+                # yield res[0]
+                todo_list.append(res[0])
+        return todo_list
     

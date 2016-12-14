@@ -127,7 +127,7 @@ def run_all_worker():
     job_cache = redis.StrictRedis(**USED_REDIS)  # list
     result_cache = redis.StrictRedis(**USED_REDIS)  # list
     if not job_cache.llen(JOBS_QUEUE):  # divide init and other machines
-        create_processes(add_jobs, (job_cache, ), 1)
+        add_jobs(job_cache)
     else:
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
     job_pool = mp.Pool(processes=4,
