@@ -41,7 +41,7 @@ class WeiboFollowWriter(DBAccesor):
             AND tw.weibo_url = wc.weibo_url
             AND wc.weibocomment_author_url = wu.weibo_user_url
             AND wu.createdate > '2016-12-01'
-            AND wu.id % 3 = 0
+            AND wu.id % 3 = 1
         """
         conn = self.connect_database()
         cursor1 = conn.cursor()
