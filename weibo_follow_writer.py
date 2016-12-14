@@ -65,7 +65,7 @@ class WeiboFollowWriter(DBAccesor):
         return todo_list
         '''
         select_user_sql = """
-            SELECT count(DISTINCT wu.weibo_user_url) 
+            SELECT DISTINCT wu.weibo_user_url
             FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu  
             WHERE t.topic_url = tw.topic_url 
             AND tw.weibo_url = wc.weibo_url 
