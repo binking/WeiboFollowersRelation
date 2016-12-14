@@ -47,7 +47,7 @@ def user_info_generator(cache1, cache2):
     while True:
         res = {}
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
-        job = cache1.blpop(JOBS_QUEUE)[1]   # blpop 获取队列数据
+        job = cache1.blpop(JOBS_QUEUE, 0)[1]   # blpop 获取队列数据
         try:
             all_account = cache1.hkeys(MANUAL_COOKIES)
             if not all_account:  # no any weibo account
@@ -75,8 +75,10 @@ def user_info_generator(cache1, cache2):
                     # format sql and push them into result queue
                     cache2.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
-            cache1.put(JOBS_QUEUE, job) # put job back
+            cache1.rpush(JOBS_QUEUE, job) # put job back
             print 'Raised in gen process', str(e)
+        except KeyboardInterrupt as e:
+            break
 
 
 def user_db_writer(cache):
@@ -87,13 +89,15 @@ def user_db_writer(cache):
     dao = WeiboFollowWriter(USED_DATABASE)
     while True:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
-        res = cache.blpop(RESULTS_QUEUE)[1]
+        res = cache.blpop(RESULTS_QUEUE, 0)[1]
         try:
             d_sql, i_sql = res.split('||')
             dao.insert_follow_into_db(d_sql, i_sql)
         except Exception as e:  # won't let you died
             print 'Raised in write process', str(e)
             cache.rpush(RESULTS_QUEUE, res)
+        except KeyboardInterrupt as e:
+            break
             
 
 def add_jobs(cache):
