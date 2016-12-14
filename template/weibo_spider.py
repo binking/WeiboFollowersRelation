@@ -332,4 +332,5 @@ class WeiboSpider(Spider):
             raise ConnectionError('Ghost Error, incorrect source code but not freezed')
         if info_response.status_code == 200:
             self.page = text
+        time.sleep(self.delay)
         return True
