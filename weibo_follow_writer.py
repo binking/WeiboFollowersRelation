@@ -65,24 +65,22 @@ class WeiboFollowWriter(DBAccesor):
         return todo_list
         '''
         select_user_sql = """
-            SELECT count(DISTINCT wu.weibo_user_url)
-            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu
-            # WHERE t.id in (21520,1016,23952,8180,21362,7031)
-            WHERE t.topic_url = tw.topic_url
-            AND tw.weibo_url = wc.weibo_url
-            AND wc.weibocomment_author_url = wu.weibo_user_url
-            AND wu.createdate > '2016-12-01'
-            AND wu.createdate < '2016-12-13'
+            SELECT count(DISTINCT wu.weibo_user_url) 
+            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu  
+            WHERE t.topic_url = tw.topic_url 
+            AND tw.weibo_url = wc.weibo_url 
+            AND wc.weibocomment_author_url = wu.weibo_user_url 
+            AND wu.createdate > '2016-12-01' 
+            AND wu.createdate < '2016-12-13' 
             AND NOT EXISTS(
-            SELECT DISTINCT weibo_user_url
-            FROM weibouserfollows
-            WHERE is_up2date='Y'
-            )
+            SELECT DISTINCT weibo_user_url 
+            FROM weibouserfollows 
+            WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
+            AND is_up2date='Y' )
         """
         conn = self.connect_database()
         cursor = conn.cursor()
         cursor.execute(select_user_sql)
         for res in cursor.fetchall():
             yield res[0]
-
 
