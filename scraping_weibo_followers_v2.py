@@ -132,7 +132,10 @@ def run_all_worker():
         initializer=user_db_writer, initargs=(result_cache, ))
     create_processes(add_jobs, (job_cache, ), 1)
 
-    cp = mp.current_process()
+    if not job_cache.llen(JOBS_QUEUE):
+        cp = mp.current_process()
+    else:
+        print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
         job_pool.close()
