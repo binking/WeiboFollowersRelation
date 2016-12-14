@@ -46,16 +46,17 @@ def add_jobs(cache):
         todo += 1
         print "Adding %d-th job into redis....." % todo
         try:
-            all_account = cache.hkeys(MANUAL_COOKIES)
-            if not all_account:  # no any weibo account
-                raise Exception('All of your accounts were Freezed')
-            account = pick_rand_ele_from_list(all_account)
-            spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
-            spider.add_request_header()
-            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # all_account = cache.hkeys(MANUAL_COOKIES)
+            # if not all_account:  # no any weibo account
+            #     raise Exception('All of your accounts were Freezed')
+            # account = pick_rand_ele_from_list(all_account)
+            # spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
+            # spider.add_request_header()
+            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
             # spider.use_cookie_from_curl(TEST_CURL_SER)
-            spider.gen_html_source()
-            for ind in range(spider.get_max_page_no()):
+            # spider.gen_html_source()
+            # for ind in range(spider.get_max_page_no()):
+            for ind in range(5):
                 cache.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
         except Exception as e:
             print e
