@@ -55,10 +55,10 @@ def user_info_generator(cache1, cache2):
             account = pick_rand_ele_from_list(all_account)
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
-            # spider.use_abuyun_proxy()
+            spider.use_abuyun_proxy()
             spider.add_request_header()
-            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
-            spider.use_cookie_from_curl(TEST_CURL_SER)
+            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             f_list = spider.get_user_follow_list()
             if f_list:
@@ -126,16 +126,15 @@ def add_jobs(cache):
 def run_all_worker():
     job_cache = redis.StrictRedis(**USED_REDIS)  # list
     result_cache = redis.StrictRedis(**USED_REDIS)  # list
+    if not job_cache.llen(JOBS_QUEUE):  # divide init and other machines
+        create_processes(add_jobs, (job_cache, ), 1)
+    else:
+        print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
     job_pool = mp.Pool(processes=4,
         initializer=user_info_generator, initargs=(job_cache, result_cache))
     result_pool = mp.Pool(processes=8, 
         initializer=user_db_writer, initargs=(result_cache, ))
-    create_processes(add_jobs, (job_cache, ), 1)
-
-    if not job_cache.llen(JOBS_QUEUE):
-        cp = mp.current_process()
-    else:
-        print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
+    cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
         job_pool.close()
