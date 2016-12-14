@@ -41,7 +41,6 @@ class WeiboFollowWriter(DBAccesor):
             AND tw.weibo_url = wc.weibo_url
             AND wc.weibocomment_author_url = wu.weibo_user_url
             AND wu.createdate > '2016-12-01'
-            ORDER BY wu.id desc 
             -- AND wu.id % 3 = 0
         """
         select_existed_user = """
