@@ -137,9 +137,6 @@ def run_all_worker():
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
-        print "<"*10,
-        print "There are %d users to traverse" % num_of_users, 
-        print ">"*10
         job_pool.join()
         result_pool.join()
     except Exception as e:
