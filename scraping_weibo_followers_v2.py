@@ -113,8 +113,8 @@ def add_jobs(cache):
             account = pick_rand_ele_from_list(all_account)
             spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.add_request_header()
-            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
-            spider.use_cookie_from_curl(TEST_CURL_SER)
+            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             for ind in range(spider.get_max_page_no()):
                 cache.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
