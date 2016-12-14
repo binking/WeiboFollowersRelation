@@ -102,7 +102,6 @@ def user_db_writer(cache):
 
 def add_jobs(cache):
     todo = 0
-    # dao = WeiboWriter(OUTER_MYSQL)
     dao = WeiboFollowWriter(USED_DATABASE)
     jobs = dao.read_user_url_from_db()
     for job in jobs:  # iterate
@@ -119,17 +118,12 @@ def add_jobs(cache):
             spider.gen_html_source()
             for ind in range(spider.get_max_page_no()):
                 cache.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
-            if todo > 1:
-               break
         except Exception as e:
             print e
     return todo
 
 
 def run_all_worker():
-    # load weibo account into redis cache
-    # r = redis.StrictRedis(**USED_REDIS)
-    # Producer is on !!!
     job_cache = redis.StrictRedis(**USED_REDIS)  # list
     result_cache = redis.StrictRedis(**USED_REDIS)  # list
     job_pool = mp.Pool(processes=4,
@@ -145,6 +139,8 @@ def run_all_worker():
         result_pool.close()
         job_pool.join()
         result_pool.join()
+        print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
+        print "+"*10, "results' length is ", result_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
     except Exception as e:
         traceback.print_exc()
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Exception raise in runn all Work"
@@ -153,48 +149,6 @@ def run_all_worker():
         print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
         print "+"*10, "results' length is ", result_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
 
-
-def single_process():
-    rconn = redis.StrictRedis(**USED_REDIS)
-    todo = 0
-    dao = WeiboWriter(OUTER_MYSQL)
-    dao = WeiboFollowWriter(USED_DATABASE)
-    for job in dao.read_user_url_from_db():  # iterate
-        todo += 1
-        try:
-            # get max page number
-            spider = WeiboFollowSpider(job+'/follow?page=1', 'test_user', 'test_pwd', timeout=20)
-            spider.add_request_header()
-            spider.use_cookie_from_curl(TEST_CURL_SER)
-            spider.gen_html_source()
-            import ipdb; ipdb.set_trace()
-            for ind in range(spider.get_max_page_no()):
-                spider = WeiboFollowSpider(job+'/follow?page=%d' % (ind+1), 
-                    'test_user', 'test_pwd', timeout=20)
-                # spider.use_abuyun_proxy()
-                spider.add_request_header()
-                spider.use_cookie_from_curl(TEST_CURL_SER)
-                spider.gen_html_source()
-                f_list = spider.get_user_follow_list()
-                if not f_list:
-                    continue
-                for follow in f_list:
-                    d_sql = DEPRECATE_FOLLOW.format(
-                        user=follow['url'],
-                        followid=follow['usercard'])
-                    i_sql = INSERT_FOLLOW_SQL.format(
-                        nickname=follow['myname'], user=follow['url'],
-                        follow=follow.get('name', ''), fans=follow.get('fans', ''),
-                        blogs=follow.get('blogs', ''), focus=follow.get('follows', ''),
-                        type=follow.get('type', ''), followid=follow['usercard'],
-                        date=follow['date'], status='Y')
-                    print d_sql, i_sql
-                    dao = WeiboFollowWriter(USED_DATABASE)
-                    dao.insert_follow_into_db(d_sql, i_sql)
-            if todo > 1:
-                break
-        except Exception as e:
-            print e
 
 if __name__=="__main__":
     print "\n\n" + "%s Began Scraped Weibo User Follows" % dt.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
