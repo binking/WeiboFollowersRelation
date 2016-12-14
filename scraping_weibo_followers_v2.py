@@ -102,6 +102,7 @@ def user_db_writer(cache):
 
 def add_jobs(cache):
     todo = 0
+    print "Adding jobs into redis....."
     dao = WeiboFollowWriter(USED_DATABASE)
     jobs = dao.read_user_url_from_db()
     for job in jobs:  # iterate

@@ -33,6 +33,7 @@ class WeiboFollowWriter(DBAccesor):
 
     @database_error_hunter
     def read_user_url_from_db(self):
+        '''
         select_user_sql = """
             SELECT DISTINCT wu.weibo_user_url 
             FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu
@@ -40,8 +41,7 @@ class WeiboFollowWriter(DBAccesor):
             WHERE t.topic_url = tw.topic_url
             AND tw.weibo_url = wc.weibo_url
             AND wc.weibocomment_author_url = wu.weibo_user_url
-            AND wu.createdate > '2016-12-01'
-            ORDER BY wu.id desc 
+            AND wu.createdate > '2016-12-13'
             -- AND wu.id % 3 = 0
         """
         select_existed_user = """
@@ -63,4 +63,30 @@ class WeiboFollowWriter(DBAccesor):
                 # yield res[0]
                 todo_list.append(res[0])
         return todo_list
+<<<<<<< HEAD
     
+=======
+        '''
+        select_user_sql = """
+            SELECT count(DISTINCT wu.weibo_user_url)
+            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu
+            # WHERE t.id in (21520,1016,23952,8180,21362,7031)
+            WHERE t.topic_url = tw.topic_url
+            AND tw.weibo_url = wc.weibo_url
+            AND wc.weibocomment_author_url = wu.weibo_user_url
+            AND wu.createdate > '2016-12-01'
+            AND wu.createdate < '2016-12-13'
+            AND NOT EXISTS(
+            SELECT DISTINCT weibo_user_url
+            FROM weibouserfollows
+            WHERE is_up2date='Y'
+            )
+        """
+        conn = self.connect_database()
+        cursor = conn.cursor()
+        cursor.execute(select_user_sql)
+        for res in cursor.fetchall():
+            yield res[0]
+
+
+>>>>>>> bcf1a3509ed8b1fe80799c4244527d29f24706ac
