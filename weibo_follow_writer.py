@@ -31,7 +31,7 @@ class WeiboFollowWriter(DBAccesor):
         return True
 
 
-    @database_error_hunter
+    # @database_error_hunter
     def read_user_url_from_db(self):
         '''
         select_user_sql = """
