@@ -39,17 +39,17 @@ else:
 
 TEST_CURL_SER = "curl 'http://d.weibo.com/' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Cache-Control: max-age=0' -H 'Cookie: _T_WM=52765f5018c5d34c5f77302463042cdf; ALF=1484204272; SUB=_2A251S-ugDeTxGeNH41cV8CbLyTWIHXVWt_XorDV8PUJbkNAKLWbBkW0_fe7_8gLTd0veLjcMNIpRdG9dKA..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WhZLMdo2m4y1PHxGYdNTkzk5JpX5oz75NHD95Qf1KnfSh5RS0z4Ws4Dqcj_i--ciKLsi-z0i--RiK.pi-2pi--ci-zfiK.0i--fi-zEi-zRi--ciKy2i-2E; TC-Page-G0=cdcf495cbaea129529aa606e7629fea7' -H 'Connection: keep-alive' --compressed"
 
-def user_info_generator(cache1, cache2):
+def user_info_generator(cache):
     """
-    Producer for users(cache1) and follows(cache2), Consummer for topics
+    Producer for users(cache) and follows(cache2), Consummer for topics
     """
     cp = mp.current_process()
     while True:
         res = {}
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
-        job = cache1.blpop(JOBS_QUEUE, 0)[1]   # blpop 获取队列数据
+        job = cache.blpop(JOBS_QUEUE, 0)[1]   # blpop 获取队列数据
         try:
-            all_account = cache1.hkeys(MANUAL_COOKIES)
+            all_account = cache.hkeys(MANUAL_COOKIES)
             if not all_account:  # no any weibo account
                 raise Exception('All of your accounts were Freezed')
             account = pick_rand_ele_from_list(all_account)
@@ -57,7 +57,8 @@ def user_info_generator(cache1, cache2):
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            spider.use_cookie_from_curl(cache.hget(MANUAL_COOKIES, account))
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             f_list = spider.get_user_follow_list()
@@ -73,9 +74,9 @@ def user_info_generator(cache1, cache2):
                         type=follow.get('type', ''), followid=follow['usercard'],
                         date=follow['date'], status='Y')
                     # format sql and push them into result queue
-                    cache2.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
+                    cache.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
-            cache1.rpush(JOBS_QUEUE, job) # put job back
+            cache.rpush(JOBS_QUEUE, job) # put job back
             print 'Raised in gen process', str(e)
         except KeyboardInterrupt as e:
             break
@@ -126,15 +127,15 @@ def add_jobs(cache):
 
 def run_all_worker():
     job_cache = redis.StrictRedis(**USED_REDIS)  # list
-    result_cache = redis.StrictRedis(**USED_REDIS)  # list
+    # result_cache = redis.StrictRedis(**USED_REDIS)  # list
     if not job_cache.llen(JOBS_QUEUE):  # divide init and other machines
         add_jobs(job_cache)
     else:
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
     job_pool = mp.Pool(processes=4,
-        initializer=user_info_generator, initargs=(job_cache, result_cache))
+        initializer=user_info_generator, initargs=(job_cache, ))
     result_pool = mp.Pool(processes=8, 
-        initializer=user_db_writer, initargs=(result_cache, ))
+        initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
@@ -143,14 +144,14 @@ def run_all_worker():
         job_pool.join()
         result_pool.join()
         print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
-        print "+"*10, "results' length is ", result_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
+        print "+"*10, "results' length is ", job_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
     except Exception as e:
         traceback.print_exc()
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Exception raise in runn all Work"
     except KeyboardInterrupt:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Interrupted by you and quit in force, but save the results"
         print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
-        print "+"*10, "results' length is ", result_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
+        print "+"*10, "results' length is ", job_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
 
 
 if __name__=="__main__":
