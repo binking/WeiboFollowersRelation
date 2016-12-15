@@ -55,7 +55,7 @@ def user_info_generator(cache1, cache2):
             account = pick_rand_ele_from_list(all_account)
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
-            # spider.use_abuyun_proxy()
+            spider.use_abuyun_proxy()
             spider.add_request_header()
             # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
             spider.use_cookie_from_curl(TEST_CURL_SER)
