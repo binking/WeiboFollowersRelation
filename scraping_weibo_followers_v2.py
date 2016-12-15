@@ -95,7 +95,7 @@ def user_db_writer(cache):
             d_sql, i_sql = res.split('||')
             dao.insert_follow_into_db(d_sql, i_sql)
         except Exception as e:  # won't let you died
-            print 'Raised in write process', str(e)
+            print 'Raised in write process\n', str(e)
             cache.rpush(RESULTS_QUEUE, res)
         except KeyboardInterrupt as e:
             break
