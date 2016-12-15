@@ -12,12 +12,6 @@ class WeiboFollowSpider(WeiboSpider):
         WeiboSpider.__init__(self, start_url, account, password, timeout=timeout, delay=delay, proxy=proxy)
         self.pageno = 1
 
-    # def batch_requests(self):
-    #     repsonse_list = []
-    #     session = requests.session()
-    #     for i in range(1, self.pageno + 1):
-    #         req = session.get(self.url+)
-
     @catch_parse_error((AttributeError, Exception))
     def get_max_page_no(self):
         max_page = 0
@@ -54,7 +48,7 @@ class WeiboFollowSpider(WeiboSpider):
     def get_user_follow_list(self):
         follow_list = []
         if not self.page:
-            return res
+            return follow_list
         # Parse game is on !!!
         parser = bs(self.page, "html.parser")
         print 'Parsing page: %s' % self.url
