@@ -17,7 +17,7 @@ class WeiboFollowWriter(DBAccesor):
     def connect_database(self):
         return DBAccesor.connect_database(self)
 
-    @database_error_hunter
+    # @database_error_hunter
     def insert_follow_into_db(self, deprecate_sql, insert_sql):
         conn = self.connect_database()
         if not conn:
@@ -31,7 +31,7 @@ class WeiboFollowWriter(DBAccesor):
         return True
 
 
-    @database_error_hunter
+    # @database_error_hunter
     def read_user_url_from_db(self):
         '''
         select_user_sql = """
