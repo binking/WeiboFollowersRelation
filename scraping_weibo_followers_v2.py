@@ -12,7 +12,7 @@ from template.weibo_config import (
     WEIBO_MANUAL_COOKIES, MANUAL_COOKIES,
     WEIBO_ACCOUNT_PASSWD, 
     JOBS_QUEUE, RESULTS_QUEUE,
-    DEPRECATE_FOLLOW, INSERT_FOLLOW_SQL,
+    DEPRECATE_FOLLOW, INSERT_UNEXISTED_FOLLOW_SQL,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
@@ -64,10 +64,11 @@ def user_info_generator(cache):
             f_list = spider.get_user_follow_list()
             if f_list:
                 for follow in f_list:
-                    d_sql = DEPRECATE_FOLLOW.format(
-                        user=follow['url'],
-                        followid=follow['usercard'])
-                    i_sql = INSERT_FOLLOW_SQL.format(
+                    # d_sql = DEPRECATE_FOLLOW.format(
+                    #     user=follow['url'],
+                    #     followid=follow['usercard'])
+                    d_sql = ''
+                    i_sql = INSERT_UNEXISTED_FOLLOW_SQL.format(  # only insert inexisted
                         nickname=follow['myname'], user=follow['url'],
                         follow=follow.get('name', ''), fans=follow.get('fans', ''),
                         blogs=follow.get('blogs', ''), focus=follow.get('follows', ''),
@@ -92,10 +93,10 @@ def user_db_writer(cache):
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
         res = cache.blpop(RESULTS_QUEUE, 0)[1]
         try:
-            d_sql, i_sql = res.split('||')
+            d_sql, i_sql = res.split('||')  # d_sql is null
             dao.insert_follow_into_db(d_sql, i_sql)
         except Exception as e:  # won't let you died
-            print 'Raised in write process\n', str(e)
+            print 'Raised in write process: ', str(e)
             cache.rpush(RESULTS_QUEUE, res)
         except KeyboardInterrupt as e:
             break

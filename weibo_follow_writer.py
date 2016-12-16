@@ -23,7 +23,7 @@ class WeiboFollowWriter(DBAccesor):
         if not conn:
             return False
         cursor = conn.cursor()
-        if cursor.execute(deprecate_sql):
+        if len(deprecate_sql)>10 and cursor.execute(deprecate_sql):
             print '$'*10, 'Deprecate %d follows succeeded !' % cursor.rowcount
         if cursor.execute(insert_sql):
             print '$'*10, 'Write follow info succeeded !'
@@ -70,13 +70,13 @@ class WeiboFollowWriter(DBAccesor):
             WHERE t.topic_url = tw.topic_url 
             AND tw.weibo_url = wc.weibo_url 
             AND wc.weibocomment_author_url = wu.weibo_user_url 
-            # AND wu.createdate > '2016-12-01' 
-            AND wu.createdate > '2016-12-13' 
-            AND NOT EXISTS(
-            SELECT DISTINCT weibo_user_url 
-            FROM weibouserfollows 
-            WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
-            AND is_up2date='Y' )
+            AND wu.createdate > '2016-12-01' 
+            # AND wu.createdate > '2016-12-13' 
+            # AND NOT EXISTS(
+            # SELECT DISTINCT weibo_user_url 
+            # FROM weibouserfollows 
+            # WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
+            # AND is_up2date='Y' )
         """
         conn = self.connect_database()
         cursor = conn.cursor()
