@@ -23,7 +23,7 @@ class WeiboFollowWriter(DBAccesor):
         if not conn:
             return False
         cursor = conn.cursor()
-        if cursor.execute(deprecate_sql):
+        if deprecate_sql and cursor.execute(deprecate_sql):
             print '$'*10, 'Deprecate %d follows succeeded !' % cursor.rowcount
         if cursor.execute(insert_sql):
             print '$'*10, 'Write follow info succeeded !'
