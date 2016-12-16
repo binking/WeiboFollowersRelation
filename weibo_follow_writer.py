@@ -72,11 +72,11 @@ class WeiboFollowWriter(DBAccesor):
             AND wc.weibocomment_author_url = wu.weibo_user_url 
             AND wu.createdate > '2016-12-01' 
             # AND wu.createdate > '2016-12-13' 
-            AND NOT EXISTS(
-            SELECT DISTINCT weibo_user_url 
-            FROM weibouserfollows 
-            WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
-            AND is_up2date='Y' )
+            # AND NOT EXISTS(
+            # SELECT DISTINCT weibo_user_url 
+            # FROM weibouserfollows 
+            # WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
+            # AND is_up2date='Y' )
         """
         conn = self.connect_database()
         cursor = conn.cursor()
