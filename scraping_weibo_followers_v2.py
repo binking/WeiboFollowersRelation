@@ -74,6 +74,9 @@ def user_info_generator(cache):
                         blogs=follow.get('blogs', ''), focus=follow.get('follows', ''),
                         type=follow.get('type', ''), followid=follow['usercard'],
                         date=follow['date'], status='Y')
+                    if len(i_sql) > 10000:
+                        print >>open('bad_%s.sql' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), '%s||%s' % (d_sql, i_sql)
+                        break
                     # format sql and push them into result queue
                     cache.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
