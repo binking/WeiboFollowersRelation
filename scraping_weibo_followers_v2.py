@@ -97,7 +97,9 @@ def user_db_writer(cache):
         res = cache.blpop(RESULTS_QUEUE, 0)[1]
         try:
             d_sql, i_sql = res.split('||')  # d_sql is null
+            i_sql = i_sql.replace('SELECT', 'VALUE (').split('FROM')[0].strip() + ')'
             dao.insert_follow_into_db(d_sql, i_sql)
+            # raise Exception('I reject to insert record.  >_< ')
         except Exception as e:  # won't let you died
             print 'Raised in write process: ', str(e)
             cache.rpush(RESULTS_QUEUE, res)
