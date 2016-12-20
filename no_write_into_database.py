@@ -140,15 +140,11 @@ def run_all_worker():
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
     job_pool = mp.Pool(processes=4,
         initializer=user_info_generator, initargs=(job_cache, ))
-    result_pool = mp.Pool(processes=8, 
-        initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
         job_pool.close()
-        result_pool.close()
         job_pool.join()
-        result_pool.join()
         print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
         print "+"*10, "results' length is ", job_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
     except Exception as e:
