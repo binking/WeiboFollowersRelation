@@ -48,17 +48,21 @@ def user_info_generator(cache):
         res = {}
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
         job = cache.blpop(JOBS_QUEUE, 0)[1]   # blpop 获取队列数据
+        freezed_account = ''
         try:
             all_account = cache.hkeys(MANUAL_COOKIES)
             if not all_account:  # no any weibo account
                 raise Exception('All of your accounts were Freezed')
-            account = pick_rand_ele_from_list(all_account)
+            # account = pick_rand_ele_from_list(all_account)
+            account = "liekeoth27678@163.com"
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            # spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
             spider.use_cookie_from_curl(cache.hget(MANUAL_COOKIES, account))
+            print cache.hget(MANUAL_COOKIES, account)
+            freezed_account = account
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             f_list = spider.get_user_follow_list()
@@ -81,7 +85,9 @@ def user_info_generator(cache):
                     cache.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             cache.rpush(JOBS_QUEUE, job) # put job back
+            print 'Ha'*10, freezed_account
             print 'Raised in gen process', str(e)
+            break
         except KeyboardInterrupt as e:
             break
 
@@ -98,8 +104,8 @@ def user_db_writer(cache):
         try:
             d_sql, i_sql = res.split('||')  # d_sql is null
             i_sql = i_sql.replace('SELECT', 'VALUE (').split('FROM')[0].strip() + ')'
+            print i_sql
             dao.insert_follow_into_db(d_sql, i_sql)
-            # raise Exception('I reject to insert record.  >_< ')
         except Exception as e:  # won't let you died
             print 'Raised in write process: ', str(e)
             cache.rpush(RESULTS_QUEUE, res)
@@ -138,9 +144,9 @@ def run_all_worker():
         add_jobs(job_cache)
     else:
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
-    job_pool = mp.Pool(processes=4,
+    job_pool = mp.Pool(processes=1,
         initializer=user_info_generator, initargs=(job_cache, ))
-    result_pool = mp.Pool(processes=8, 
+    result_pool = mp.Pool(processes=1, 
         initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
