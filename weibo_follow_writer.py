@@ -18,16 +18,28 @@ class WeiboFollowWriter(DBAccesor):
         return DBAccesor.connect_database(self)
 
     # @database_error_hunter
-    def insert_follow_into_db(self, deprecate_sql, insert_sql):
+    def insert_follow_into_db(self, res):
+        insert_unexisted_follow_sql = """
+            INSERT INTO weibouserfollows
+            (nickname, weibo_user_url, follow_nickname, follow_fans_num, follow_weibo_num, 
+            follow_focus_num, follow_type, follow_usercard, createdate, is_up2date)
+            SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, 'Y'
+            FROM DUAL WHERE NOT EXISTS (SELECT id FROM weibouserfollows 
+            WHERE weibo_user_url = %s and follow_usercard = %s and is_up2date = 'Y')
+        """
         conn = self.connect_database()
         if not conn:
             return False
         cursor = conn.cursor()
-        if len(deprecate_sql)>10 and cursor.execute(deprecate_sql):
-            print '$'*10, 'Deprecate %d follows succeeded !' % cursor.rowcount
-        if cursor.execute(insert_sql):
+        if cursor.execute(insert_sql, (
+            follow['myname'], follow['url'], 
+            follow.get('name', ''), fans=follow.get('fans', ''), 
+            follow.get('blogs', ''), follow.get('follows', ''),
+            follow.get('type', ''), follow['usercard'], 
+            follow['date'], follow['url'], follow['usercard']
+        )):
             print '$'*10, 'Write follow info succeeded !'
-        conn.commit(); cursor.close(); conn.close()
+        # conn.commit(); cursor.close(); conn.close()
         return True
 
 
