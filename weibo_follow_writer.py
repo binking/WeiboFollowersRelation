@@ -39,7 +39,7 @@ class WeiboFollowWriter(DBAccesor):
             res['date'], res['url'], res['usercard']
         )):
             print '$'*10, 'Write follow info succeeded !'
-        # conn.commit(); cursor.close(); conn.close()
+        conn.commit(); cursor.close(); conn.close()
         return True
 
 

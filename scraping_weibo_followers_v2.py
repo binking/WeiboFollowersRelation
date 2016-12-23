@@ -86,7 +86,7 @@ def user_db_writer(cache):
         try:
             dao.insert_follow_into_db(pickle.loads(res))
         except Exception as e:  # won't let you died
-            print 'Write %s Error: ' % pickle.loads(res)
+            print 'Write %s Error: ' % pickle.loads(res)['url']
             print str(e)
             cache.rpush(RESULTS_QUEUE, res)
         except KeyboardInterrupt as e:
