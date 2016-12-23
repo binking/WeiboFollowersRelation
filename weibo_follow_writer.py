@@ -32,11 +32,11 @@ class WeiboFollowWriter(DBAccesor):
             return False
         cursor = conn.cursor()
         if cursor.execute(insert_sql, (
-            follow['myname'], follow['url'], 
-            follow.get('name', ''), follow.get('fans', ''), 
-            follow.get('blogs', ''), follow.get('follows', ''),
-            follow.get('type', ''), follow['usercard'], 
-            follow['date'], follow['url'], follow['usercard']
+            res['myname'], res['url'], 
+            res.get('name', ''), res.get('fans', ''), 
+            res.get('blogs', ''), res.get('follows', ''),
+            res.get('type', ''), res['usercard'], 
+            res['date'], res['url'], res['usercard']
         )):
             print '$'*10, 'Write follow info succeeded !'
         # conn.commit(); cursor.close(); conn.close()
