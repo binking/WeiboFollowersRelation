@@ -314,10 +314,18 @@ class WeiboSpider(Spider):
         # import ipdb; ipdb.set_trace()
         # home_response = s.get('http://m.weibo.com/', cookies=self.cookie, proxies=self.proxy)
         info_response = requests.get(self.url, timeout=self.timeout, headers=self.headers,
-            cookies=self.cookie, proxies=self.proxy)
+            cookies=self.cookie, proxies=self.proxy, allow_redirects=True)
         text = info_response.text.encode('utf8')
         now_time = dt.now().strftime("%Y-%m-%d %H:%M:%S")
-        if info_response.status_code == 429:
+        if 'pagenotfound' in info_response.url:
+            # 'http://weibo.com/sorry?pagenotfound&id_error'
+            print "抱歉，你访问的页面地址有误，或者该页面不存在: %s" % self.url
+            return 404
+        elif 'code=20003' in info_response.url:
+            # http://weibo.com/sorry?userblock&is_viewer&code=20003
+            print '抱歉，您当前访问的帐号异常，暂时无法访问。(20003): %s' % self.url
+            return 20003
+        elif info_response.status_code == 429:
             raise ConnectionError("Hey, guy, too many requests")
         elif len(text) == 0:
             print 'Access nothing back'
