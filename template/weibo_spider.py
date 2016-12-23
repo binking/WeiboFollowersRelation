@@ -311,7 +311,7 @@ class WeiboSpider(Spider):
         if not self.cookie:
             return False
         # s = requests.session()
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
         # home_response = s.get('http://m.weibo.com/', cookies=self.cookie, proxies=self.proxy)
         info_response = requests.get(self.url, timeout=self.timeout, headers=self.headers,
             cookies=self.cookie, proxies=self.proxy)

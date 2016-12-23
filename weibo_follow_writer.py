@@ -70,7 +70,7 @@ class WeiboFollowWriter(DBAccesor):
             WHERE t.topic_url = tw.topic_url 
             AND tw.weibo_url = wc.weibo_url 
             AND wc.weibocomment_author_url = wu.weibo_user_url 
-            AND wu.createdate > '2016-12-01' 
+            AND wu.createdate > '2016-12-13' 
             # AND wu.createdate > '2016-12-13' 
             # AND NOT EXISTS(
             # SELECT DISTINCT weibo_user_url 

@@ -61,7 +61,7 @@ def user_info_generator(cache):
             spider.add_request_header()
             spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
             spider.use_cookie_from_curl(cache.hget(MANUAL_COOKIES, account))
-            print cache.hget(MANUAL_COOKIES, account)
+            # print cache.hget(MANUAL_COOKIES, account)
             freezed_account = account
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
@@ -84,10 +84,9 @@ def user_info_generator(cache):
                     # format sql and push them into result queue
                     cache.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
-            cache.rpush(JOBS_QUEUE, job) # put job back
+            # cache.rpush(JOBS_QUEUE, job) # put job back
             print 'Ha'*10, freezed_account
             print 'Raised in gen process', str(e)
-            break
         except KeyboardInterrupt as e:
             break
 
@@ -144,9 +143,9 @@ def run_all_worker():
         add_jobs(job_cache)
     else:
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
-    job_pool = mp.Pool(processes=1,
+    job_pool = mp.Pool(processes=8,
         initializer=user_info_generator, initargs=(job_cache, ))
-    result_pool = mp.Pool(processes=1, 
+    result_pool = mp.Pool(processes=4, 
         initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
