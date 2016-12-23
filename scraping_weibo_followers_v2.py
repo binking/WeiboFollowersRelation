@@ -66,7 +66,8 @@ def user_info_generator(cache):
                 cache.rpush(RESULTS_QUEUE, pickle.dumps(follow))  # push string to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             cache.rpush(JOBS_QUEUE, job) # put job back
-            print 'Gen Error', str(e)
+            print 'Parse %s with %s Error: ' % (job, account)
+            print str(e)
         except KeyboardInterrupt as e:
             break
 
@@ -83,7 +84,8 @@ def user_db_writer(cache):
         try:
             dao.insert_follow_into_db(pickle.loads(res))
         except Exception as e:  # won't let you died
-            print 'Write Error: ', str(e)
+            print 'Write %s Error: ' % pickle.loads(res)
+            print str(e)
             cache.rpush(RESULTS_QUEUE, res)
         except KeyboardInterrupt as e:
             break
