@@ -19,7 +19,7 @@ class WeiboFollowWriter(DBAccesor):
 
     # @database_error_hunter
     def insert_follow_into_db(self, res):
-        insert_unexisted_follow_sql = """
+        insert_sql = """
             INSERT INTO weibouserfollows
             (nickname, weibo_user_url, follow_nickname, follow_fans_num, follow_weibo_num, 
             follow_focus_num, follow_type, follow_usercard, createdate, is_up2date)
