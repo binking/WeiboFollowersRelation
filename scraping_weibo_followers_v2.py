@@ -63,7 +63,7 @@ def user_info_generator(cache):
                 continue
             f_list = spider.get_user_follow_list()
             for follow in f_list:
-                cache.rpush(pickle.dumps(follow))  # push string to the tail
+                cache.rpush(RESULTS_QUEUE, pickle.dumps(follow))  # push string to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             cache.rpush(JOBS_QUEUE, job) # put job back
             print 'Raised in gen process', str(e)
