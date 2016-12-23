@@ -111,7 +111,7 @@ def run_all_worker():
         add_jobs(job_cache)
     else:
         print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
-    job_pool = mp.Pool(processes=8,
+    job_pool = mp.Pool(processes=4,
         initializer=user_info_generator, initargs=(job_cache, ))
     result_pool = mp.Pool(processes=4, 
         initializer=user_db_writer, initargs=(job_cache, ))
