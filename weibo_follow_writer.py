@@ -33,7 +33,7 @@ class WeiboFollowWriter(DBAccesor):
         cursor = conn.cursor()
         if cursor.execute(insert_sql, (
             follow['myname'], follow['url'], 
-            follow.get('name', ''), fans=follow.get('fans', ''), 
+            follow.get('name', ''), follow.get('fans', ''), 
             follow.get('blogs', ''), follow.get('follows', ''),
             follow.get('type', ''), follow['usercard'], 
             follow['date'], follow['url'], follow['usercard']
@@ -45,6 +45,19 @@ class WeiboFollowWriter(DBAccesor):
 
     # @database_error_hunter
     def read_user_url_from_db(self):
+        select_user_sql = """
+            SELECT DISTINCT wu.weibo_user_url
+            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu  
+            WHERE t.topic_url = tw.topic_url 
+            AND tw.weibo_url = wc.weibo_url 
+            AND wc.weibocomment_author_url = wu.weibo_user_url 
+            AND wu.createdate > '2016-12-23' LIMIT 10
+        """
+        conn = self.connect_database()
+        cursor = conn.cursor()
+        cursor.execute(select_user_sql)
+        for res in cursor.fetchall():
+            yield res[0]
         '''
         select_user_sql = """
             SELECT DISTINCT wu.weibo_user_url 
@@ -76,23 +89,6 @@ class WeiboFollowWriter(DBAccesor):
                 todo_list.append(res[0])
         return todo_list
         '''
-        select_user_sql = """
-            SELECT DISTINCT wu.weibo_user_url
-            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu  
-            WHERE t.topic_url = tw.topic_url 
-            AND tw.weibo_url = wc.weibo_url 
-            AND wc.weibocomment_author_url = wu.weibo_user_url 
-            AND wu.createdate > '2016-12-01' 
-            # AND wu.createdate > '2016-12-13' 
-            # AND NOT EXISTS(
-            # SELECT DISTINCT weibo_user_url 
-            # FROM weibouserfollows 
-            # WHERE weibouserfollows.weibo_user_url=wu.weibo_user_url 
-            # AND is_up2date='Y' )
-        """
-        conn = self.connect_database()
-        cursor = conn.cursor()
-        cursor.execute(select_user_sql)
-        for res in cursor.fetchall():
-            yield res[0]
+        
+        
 
