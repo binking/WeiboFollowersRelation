@@ -112,7 +112,7 @@ def wrap_print(tag, center, repeat=10):
 
 
 def handle_sleep(seconds):
-    print "Sleeping %d seconds " % seconds, 'zZ'*10, 
+    print "Sleeping %d seconds " % seconds, 'zZ'*10
     time.sleep(seconds)
 
 
