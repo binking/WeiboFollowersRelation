@@ -9,6 +9,8 @@ config.py
 *config*.py
 */*config*.py
 
+*.html
+*/*.html
 # C extensions
 *.so
 
