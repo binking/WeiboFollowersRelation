@@ -49,6 +49,9 @@ class WeiboFollowSpider(WeiboSpider):
         follow_list = []
         if not self.page:
             return follow_list
+        if '智能反垃圾系统自动清除了部分广告用户' in self.page:
+            print '智能反垃圾系统自动清除了部分广告用户'
+            return follow_list
         # Parse game is on !!!
         parser = bs(self.page, "html.parser")
         print 'Parsing page: %s' % self.url
