@@ -4,8 +4,8 @@ import json
 import requests
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
-from template.weibo_spider import WeiboSpider
-from template.weibo_utils import catch_parse_error
+from zc_spider.weibo_spider import WeiboSpider
+from zc_spider.weibo_utils import catch_parse_error
 
 class WeiboFollowSpider(WeiboSpider):
     def __init__(self, start_url, account, password, timeout=10, delay=1, proxy={}):
@@ -48,6 +48,9 @@ class WeiboFollowSpider(WeiboSpider):
     def get_user_follow_list(self):
         follow_list = []
         if not self.page:
+            return follow_list
+        if '智能反垃圾系统自动清除了部分广告用户' in self.page:
+            print '智能反垃圾系统自动清除了部分广告用户'
             return follow_list
         # Parse game is on !!!
         parser = bs(self.page, "html.parser")
