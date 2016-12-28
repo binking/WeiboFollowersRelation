@@ -4,7 +4,7 @@ import time
 import traceback
 from datetime import datetime as dt
 import MySQLdb as mdb
-from template.weibo_writer import DBAccesor, database_error_hunter
+from zc_spider.weibo_writer import DBAccesor, database_error_hunter
 reload(sys)
 sys.setdefaultencoding('utf-8')
 

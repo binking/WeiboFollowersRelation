@@ -2,24 +2,22 @@
 import os
 import sys
 import time
-import pickle
 import redis
+import random
+import pickle
 import argparse
 import traceback
 from datetime import datetime as dt
 import multiprocessing as mp
 from requests.exceptions import ConnectionError
-from template.weibo_config import (
+from zc_spider.weibo_config import (
     WEIBO_MANUAL_COOKIES, MANUAL_COOKIES,
     WEIBO_ACCOUNT_PASSWD, 
-    JOBS_QUEUE, RESULTS_QUEUE,
+    FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
-from template.weibo_utils import (
-    create_processes,
-    pick_rand_ele_from_list
-)
+from zc_spider.weibo_utils import create_processes
 from weibo_follow_spider import WeiboFollowSpider
 from weibo_follow_writer import WeiboFollowWriter
 
@@ -48,9 +46,9 @@ def user_info_generator(cache):
     while True:
         res = {}
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
-        job = cache.blpop(JOBS_QUEUE, 0)[1]   # blpop 获取队列数据
+        job = cache.blpop(FOLLOWS_JOBS_CACHE, 0)[1]   # blpop 获取队列数据
         all_account = cache.hkeys(MANUAL_COOKIES)
-        account = pick_rand_ele_from_list(all_account)
+        account = random.choice(all_account)
         try:
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
@@ -63,9 +61,9 @@ def user_info_generator(cache):
                 continue
             f_list = spider.get_user_follow_list()
             for follow in f_list:
-                cache.rpush(RESULTS_QUEUE, pickle.dumps(follow))  # push string to the tail
+                cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(follow))  # push string to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
-            cache.rpush(JOBS_QUEUE, job) # put job back
+            cache.rpush(FOLLOWS_JOBS_CACHE, job) # put job back
             print 'Parse %s with %s Error: ' % (job, account)
             print str(e)
         except KeyboardInterrupt as e:
@@ -80,13 +78,13 @@ def user_db_writer(cache):
     dao = WeiboFollowWriter(USED_DATABASE)
     while True:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
-        res = cache.blpop(RESULTS_QUEUE, 0)[1]
+        res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
             dao.insert_follow_into_db(pickle.loads(res))
         except Exception as e:  # won't let you died
             print 'Write %s Error: ' % pickle.loads(res)['url']
             print str(e)
-            cache.rpush(RESULTS_QUEUE, res)
+            cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
             
@@ -99,19 +97,22 @@ def add_jobs(cache):
     for job in jobs: 
         todo += 1
         for ind in range(5):  # suppose 5 pages
-            cache.rpush(JOBS_QUEUE, '%s/follow?page=%d' % (job, ind+1))
+            cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
+    print 'There are totally %d jobs to process' % todo
     return todo
 
 
 def run_all_worker():
     job_cache = redis.StrictRedis(**USED_REDIS)  # list
-    if not job_cache.llen(JOBS_QUEUE):  # divide init and other machines
+    if not job_cache.llen(FOLLOWS_JOBS_CACHE):  # divide init and other machines
         add_jobs(job_cache)
+        print 'Add jobs done, I quit...'
+        return 0
     else:
-        print "Redis have %d records in cache" % job_cache.llen(JOBS_QUEUE)
+        print "Redis have %d records in cache" % job_cache.llen(FOLLOWS_JOBS_CACHE)
     job_pool = mp.Pool(processes=4,
         initializer=user_info_generator, initargs=(job_cache, ))
-    result_pool = mp.Pool(processes=4, 
+    result_pool = mp.Pool(processes=2, 
         initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
@@ -123,8 +124,8 @@ def run_all_worker():
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Exception raise in runn all Work"
     except KeyboardInterrupt:
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Interrupted by you and quit in force, but save the results"
-    print "+"*10, "jobs' length is ", job_cache.llen(JOBS_QUEUE) #jobs.llen(JOBS_QUEUE)
-    print "+"*10, "results' length is ", job_cache.llen(RESULTS_QUEUE) #jobs.llen(JOBS_QUEUE)
+    print "+"*10, "jobs' length is ", job_cache.llen(FOLLOWS_JOBS_CACHE) #jobs.llen(FOLLOWS_JOBS_CACHE)
+    print "+"*10, "results' length is ", job_cache.llen(FOLLOWS_RESULTS_CACHE) #jobs.llen(FOLLOWS_JOBS_CACHE)
 
 
 if __name__=="__main__":

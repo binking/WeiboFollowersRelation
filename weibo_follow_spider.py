@@ -4,8 +4,8 @@ import json
 import requests
 from bs4 import BeautifulSoup as bs
 from datetime import datetime as dt
-from template.weibo_spider import WeiboSpider
-from template.weibo_utils import catch_parse_error
+from zc_spider.weibo_spider import WeiboSpider
+from zc_spider.weibo_utils import catch_parse_error
 
 class WeiboFollowSpider(WeiboSpider):
     def __init__(self, start_url, account, password, timeout=10, delay=1, proxy={}):
