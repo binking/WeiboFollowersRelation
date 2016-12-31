@@ -128,12 +128,12 @@ def user_db_writer(cache):
         res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
             res = pickle.loads(res)
-            if len(str(res)) > 10000:
+            if not isinstance(res, dict) and len(str(res)) > 10000:
                 print str(res).replace('\\', '')
                 continue
-            dao.insert_follow_into_db(res)
+            dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
         except Exception as e:  # won't let you died
-            print 'Failed to write result: ', str(pickle.loads(res))
+            print 'Failed to write result: ', len(pickle.loads(res))
             error_count += 1
             if len(str(pickle.loads(res))) < 10000:
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
