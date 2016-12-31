@@ -11,7 +11,7 @@ from datetime import datetime as dt
 import multiprocessing as mp
 from requests.exceptions import ConnectionError
 from zc_spider.weibo_config import (
-    MANUAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE
+    MANUAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
     WEIBO_ERROR_TIME, WEIBO_ACCESS_TIME,
     WEIBO_ACCOUNT_PASSWD, WEIBO_CURRENT_ACCOUNT,
     TOPIC_URL_CACHE, TOPIC_INFO_CACHE,
@@ -71,8 +71,10 @@ def switch_account(cache):
         cache.set(WEIBO_ACCESS_TIME, 0)
         cache.set(WEIBO_ERROR_TIME, 0)
         CURRENT_ACCOUNT = new_account
-    else:
+    elif cache.get(WEIBO_CURRENT_ACCOUNT):
         CURRENT_ACCOUNT = cache.get(WEIBO_CURRENT_ACCOUNT)
+    else:
+        raise Exception('Unknown Account Error')
 
 def user_info_generator(cache):
     """
