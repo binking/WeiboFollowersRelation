@@ -119,7 +119,7 @@ def user_db_writer(cache):
     """
     Consummer for topics
     """
-    error_count += 0
+    error_count = 0
     cp = mp.current_process()
     dao = WeiboFollowWriter(USED_DATABASE)
     while True:
@@ -131,7 +131,7 @@ def user_db_writer(cache):
         try:
             dao.insert_follow_into_db(pickle.loads(res))
         except Exception as e:  # won't let you died
-            print 'Failed to write result: ', str(pickle.loads(res))
+            print 'Failed to write result: ', len(pickle.loads(res))
             error_count += 1
             cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
