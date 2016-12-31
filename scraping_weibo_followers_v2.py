@@ -135,7 +135,8 @@ def user_db_writer(cache):
         except Exception as e:  # won't let you died
             print 'Failed to write result: ', str(pickle.loads(res))
             error_count += 1
-            cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
+            if len(str(pickle.loads(res))) < 10000:
+                cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
             
