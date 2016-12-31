@@ -40,11 +40,11 @@ TEST_CURL_SER = "curl 'http://d.weibo.com/' -H 'Accept-Encoding: gzip, deflate, 
 CURRENT_ACCOUNT = ''
 
 def init_current_account(cache):
-    print 'Initializing weibo account'
     global CURRENT_ACCOUNT
     CURRENT_ACCOUNT = cache.hkeys(MANUAL_COOKIES)[0]
     print '1', CURRENT_ACCOUNT
     if not cache.get(WEIBO_CURRENT_ACCOUNT):
+        print 'Initializing weibo account'
         cache.set(WEIBO_CURRENT_ACCOUNT, CURRENT_ACCOUNT)
         cache.set(WEIBO_ACCESS_TIME, 0)
         cache.set(WEIBO_ERROR_TIME, 0)
