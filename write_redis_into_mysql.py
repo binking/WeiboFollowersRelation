@@ -5,7 +5,7 @@ import time
 import redis
 import pickle
 from datetime import datetime as dt
-import  multiprocessing
+import  multiprocessing as mp
 import threading
 from requests.exceptions import ConnectionError
 from template.weibo_config import (
@@ -72,7 +72,7 @@ def run_multiple_writer():
         #     threads[i].start()
         # for i in range(8):
         #     threads[i].join()
-        p = multiprocessing.Pool(processes=8, initializer=user_db_writer, initargs=(result_cache, ))
+        p = mp.Pool(processes=8, initializer=user_db_writer, initargs=(result_cache, ))
         p.close()
         p.join()
     except Exception as e:
