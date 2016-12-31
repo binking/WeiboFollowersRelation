@@ -42,7 +42,7 @@ class WeiboFollowWriter(DBAccesor):
         except Exception as e:
             traceback.print_exc()
             conn.commit(); cursor.close(); conn.close()
-            raise Exception(str(e)
+            raise Exception(str(e))
 
     # @database_error_hunter
     def read_user_url_from_db(self):
