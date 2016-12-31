@@ -28,20 +28,21 @@ class WeiboFollowWriter(DBAccesor):
             WHERE weibo_user_url = %s and follow_usercard = %s and is_up2date = 'Y')
         """
         conn = self.connect_database()
-        if not conn:
-            return False
         cursor = conn.cursor()
-        if cursor.execute(insert_sql, (
-            res['myname'], res['url'], 
-            res.get('name', ''), res.get('fans', ''), 
-            res.get('blogs', ''), res.get('follows', ''),
-            res.get('type', ''), res['usercard'], 
-            res['date'], res['url'], res['usercard']
-        )):
-            print '$'*10, 'Write follow info succeeded !'
-        conn.commit(); cursor.close(); conn.close()
-        return True
-
+        try:
+            if cursor.execute(insert_sql, (
+                res['myname'], res['url'], 
+                res.get('name', ''), res.get('fans', ''), 
+                res.get('blogs', ''), res.get('follows', ''),
+                res.get('type', ''), res['usercard'], 
+                res['date'], res['url'], res['usercard']
+            )):
+                print '$'*10, 'Write follow info succeeded !'
+                conn.commit(); cursor.close(); conn.close()
+        except Exception as e:
+            traceback.print_exc()
+            conn.commit(); cursor.close(); conn.close()
+            raise Exception(str(e)
 
     # @database_error_hunter
     def read_user_url_from_db(self):
