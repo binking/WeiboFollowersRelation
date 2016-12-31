@@ -127,7 +127,11 @@ def user_db_writer(cache):
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
         res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
-            dao.insert_follow_into_db(pickle.loads(res))
+            res = pickle.loads(res)
+            if len(str(res)) > 10000:
+                print str(res).replace('\\', '')
+                continue
+            dao.insert_follow_into_db(res)
         except Exception as e:  # won't let you died
             print 'Failed to write result: ', str(pickle.loads(res))
             error_count += 1
