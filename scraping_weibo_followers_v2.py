@@ -40,11 +40,11 @@ TEST_CURL_SER = "curl 'http://d.weibo.com/' -H 'Accept-Encoding: gzip, deflate, 
 CURRENT_ACCOUNT = ''
 
 def init_current_account(cache):
-    print 'Initializing weibo account'
     global CURRENT_ACCOUNT
     CURRENT_ACCOUNT = cache.hkeys(MANUAL_COOKIES)[0]
     print '1', CURRENT_ACCOUNT
     if not cache.get(WEIBO_CURRENT_ACCOUNT):
+        print 'Initializing weibo account'
         cache.set(WEIBO_CURRENT_ACCOUNT, CURRENT_ACCOUNT)
         cache.set(WEIBO_ACCESS_TIME, 0)
         cache.set(WEIBO_ERROR_TIME, 0)
@@ -52,7 +52,7 @@ def init_current_account(cache):
 
 def switch_account(cache):
     global CURRENT_ACCOUNT
-    if cache.get(WEIBO_ERROR_TIME) and int(cache.get(WEIBO_ERROR_TIME)) > 99:  # error count
+    if cache.get(WEIBO_ERROR_TIME) and int(cache.get(WEIBO_ERROR_TIME)) > 9999:  # error count
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'Swithching weibo account'
         expired_account = cache.get(WEIBO_CURRENT_ACCOUNT)
         access_times = cache.get(WEIBO_ACCESS_TIME)
@@ -129,11 +129,16 @@ def user_db_writer(cache):
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
         res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
-            dao.insert_follow_into_db(pickle.loads(res))
+            res = pickle.loads(res)
+            if not isinstance(res, dict) and len(str(res)) > 10000:
+                print str(res).replace('\\', '')
+                continue
+            dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
         except Exception as e:  # won't let you died
             print 'Failed to write result: ', len(pickle.loads(res))
             error_count += 1
-            cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
+            if len(str(pickle.loads(res))) < 10000:
+                cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
             
