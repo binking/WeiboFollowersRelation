@@ -71,8 +71,10 @@ def switch_account(cache):
         cache.set(WEIBO_ACCESS_TIME, 0)
         cache.set(WEIBO_ERROR_TIME, 0)
         CURRENT_ACCOUNT = new_account
-    else:
+    elif cache.get(WEIBO_CURRENT_ACCOUNT):
         CURRENT_ACCOUNT = cache.get(WEIBO_CURRENT_ACCOUNT)
+    else:
+        raise Exception('Unknown Account Error')
 
 def user_info_generator(cache):
     """
