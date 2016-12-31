@@ -3,20 +3,23 @@ import os
 import sys
 import time
 import redis
+import random
 import pickle
+import argparse
+import traceback
 from datetime import datetime as dt
-import  multiprocessing as mp
-import threading
+import multiprocessing as mp
 from requests.exceptions import ConnectionError
-from template.weibo_config import (
-    WEIBO_MANUAL_COOKIES, MANUAL_COOKIES,
-    WEIBO_ACCOUNT_PASSWD,
-    JOBS_QUEUE, RESULTS_QUEUE,
-    DEPRECATE_FOLLOW, INSERT_FOLLOW_SQL,
+from zc_spider.weibo_config import (
+    MANUAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
+    WEIBO_ERROR_TIME, WEIBO_ACCESS_TIME,
+    WEIBO_ACCOUNT_PASSWD, WEIBO_CURRENT_ACCOUNT,
+    TOPIC_URL_CACHE, TOPIC_INFO_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
-from template.weibo_utils import create_processes
+from zc_spider.weibo_utils import create_processes
+from weibo_follow_spider import WeiboFollowSpider
 from weibo_follow_writer import WeiboFollowWriter
 
 reload(sys)
