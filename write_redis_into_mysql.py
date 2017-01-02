@@ -36,6 +36,7 @@ elif 'centos' in os.environ.get('HOSTNAME'):
 else:
     raise Exception("Unknown Environment, Check it now...")
 
+
 def user_db_writer(cache):
     """
     Consummer for topics
@@ -62,6 +63,7 @@ def user_db_writer(cache):
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
+
 
 def run_multiple_writer():
     result_cache = redis.StrictRedis(**USED_REDIS)  # list
