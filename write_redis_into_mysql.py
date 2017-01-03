@@ -57,9 +57,10 @@ def user_db_writer(cache):
                 continue
             dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
         except Exception as e:  # won't let you died
-            print 'Failed to write result: ', len(pickle.loads(res))
+            pickle_len = len(pickle.loads(res))
+            print 'Failed to write result: ', pickle_len
             error_count += 1
-            if len(str(pickle.loads(res))) < 10000:
+            if pickle_len < 10000 and pickle_len not in  [404, 440]:
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
