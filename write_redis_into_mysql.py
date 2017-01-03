@@ -60,7 +60,7 @@ def user_db_writer(cache):
             pickle_len = len(pickle.loads(res))
             print 'Failed to write result: ', pickle_len
             error_count += 1
-            if pickle_len < 10000 and pickle_len not in  [404, 440]:
+            if pickle_len < 10000 and pickle_len != 440:
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
         except KeyboardInterrupt as e:
             break
