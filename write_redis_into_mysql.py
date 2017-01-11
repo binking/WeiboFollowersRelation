@@ -57,11 +57,13 @@ def user_db_writer(cache):
                 continue
             dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
         except Exception as e:  # won't let you died
-            pickle_len = len(pickle.loads(res))
+            pickle_len = len(str(res))
             print 'Failed to write result: ', pickle_len
+            print error_count
             error_count += 1
             if pickle_len < 10000 and pickle_len not in  [404, 440]:
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
+            time.sleep(2)
         except KeyboardInterrupt as e:
             break
 
@@ -78,7 +80,7 @@ def run_multiple_writer():
         #     threads[i].start()
         # for i in range(8):
         #     threads[i].join()
-        p = mp.Pool(processes=2, initializer=user_db_writer, initargs=(result_cache, ))
+        p = mp.Pool(processes=1, initializer=user_db_writer, initargs=(result_cache, ))
         p.close()
         p.join()
     except Exception as e:
