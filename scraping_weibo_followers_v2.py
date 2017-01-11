@@ -11,9 +11,8 @@ from datetime import datetime as dt
 import multiprocessing as mp
 from requests.exceptions import ConnectionError
 from zc_spider.weibo_config import (
-    MANUAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
-    WEIBO_ERROR_TIME, WEIBO_ACCESS_TIME,
-    WEIBO_ACCOUNT_PASSWD, WEIBO_CURRENT_ACCOUNT,
+    NORMAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
+    WEIBO_ACCOUNT_PASSWD, INACTIVE_USER_CACHE,
     TOPIC_URL_CACHE, TOPIC_INFO_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
@@ -53,16 +52,14 @@ def user_info_generator(cache):
             break
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
         job = cache.blpop(FOLLOWS_JOBS_CACHE, 0)[1]   # blpop 获取队列数据
-        all_account = cache.hkeys(MANUAL_COOKIES)
+        all_account = cache.hkeys(NORMAL_COOKIES)
         account = random.choice(all_account)
         try:
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            spider.use_cookie_from_curl(cache.hget(MANUAL_COOKIES, account))
-            # print cache.hget(MANUAL_COOKIES, account)
-            freezed_account = account
+            spider.use_cookie_from_curl(cache.hget(NORMAL_COOKIES, account))
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             status = spider.gen_html_source()
             if status in [404, 20003]:
