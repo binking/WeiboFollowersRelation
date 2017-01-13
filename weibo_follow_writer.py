@@ -38,7 +38,8 @@ class WeiboFollowWriter(DBAccesor):
                 res['date'], res['url'], res['usercard']
             )):
                 print '$'*10, 'Write follow info succeeded !'
-                conn.commit(); cursor.close(); conn.close()
+                conn.commit(); 
+            cursor.close(); conn.close()
         except Exception as e:
             traceback.print_exc()
             conn.commit(); cursor.close(); conn.close()
@@ -52,7 +53,7 @@ class WeiboFollowWriter(DBAccesor):
             WHERE t.topic_url = tw.topic_url 
             AND tw.weibo_url = wc.weibo_url 
             AND wc.weibocomment_author_url = wu.weibo_user_url 
-            AND wu.createdate > '2016-12-13'
+            AND wu.createdate > DATE_SUB(DATE(now()), INTERVAL '1' DAY)
         """
         conn = self.connect_database()
         cursor = conn.cursor()
