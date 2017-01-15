@@ -60,6 +60,22 @@ class WeiboFollowWriter(DBAccesor):
         cursor.execute(select_user_sql)
         for res in cursor.fetchall():
             yield res[0]
+
+    @database_error_hunter
+    def read_repost_user_from_db(self):
+        select_sql = """
+            SELECT DISTINCT CONCAT('http://weibo.com/', wr.weibo_user_id)
+            FROM weiboreposts wr
+            -- where not EXISTS (
+            -- select * from weibouser wu
+            -- where wu.weibo_user_card=wr.weibo_user_id
+            -- );
+        """
+        conn = self.connect_database()
+        cursor = conn.cursor()
+        cursor.execute(select_sql)
+        for res in cursor.fetchall():
+            yield res[0]
         '''
         select_user_sql = """
             SELECT DISTINCT wu.weibo_user_url 
