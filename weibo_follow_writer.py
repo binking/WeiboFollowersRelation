@@ -65,11 +65,13 @@ class WeiboFollowWriter(DBAccesor):
     def read_repost_user_from_db(self):
         select_sql = """
             SELECT DISTINCT CONCAT('http://weibo.com/', wr.weibo_user_id)
-            FROM weiboreposts wr
-            WHERE not EXISTS (
+            FROM weibouserblogs wub, weiboreposts wr
+            WHERE wub.weibo_mid=wr.weibo_mid
+            AND wub.weibo_usercard in ('1865091063','3937348351', '2803301701', '2491855213', '2778292197')
+            AND not EXISTS (
             SELECT * from weibouserfollows wuf
             WHERE wuf.weibo_user_url=CONCAT('http://weibo.com/', wr.weibo_user_id)
-            );
+            );  -- 有多少用户还没有关注
         """
         conn = self.connect_database()
         cursor = conn.cursor()
