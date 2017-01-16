@@ -108,12 +108,11 @@ def add_jobs(cache):
     todo = 0
     print "Adding jobs into redis....."
     dao = WeiboFollowWriter(USED_DATABASE)
-    jobs = dao.read_user_url_from_db()
+    jobs = dao.read_repost_user_from_db()
     for job in jobs: 
         todo += 1
         for ind in range(5):  # suppose 5 pages
-            pass
-            # cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
+            cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
     print 'There are totally %d jobs to process' % todo
     return todo
 
