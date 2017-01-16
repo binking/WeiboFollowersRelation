@@ -66,10 +66,9 @@ class WeiboFollowWriter(DBAccesor):
         select_sql = """
             SELECT DISTINCT CONCAT('http://weibo.com/', wr.weibo_user_id)
             FROM weiboreposts wr
-            -- where not EXISTS (
-            -- select * from weibouser wu
-            -- where wu.weibo_user_card=wr.weibo_user_id
-            -- );
+            WHERE NOT EXISTS (
+            SELECT * from weibouser wu
+            WHERE wu.weibo_user_card=wr.weibo_user_id)
         """
         conn = self.connect_database()
         cursor = conn.cursor()
