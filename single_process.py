@@ -16,10 +16,7 @@ from template.weibo_config import (
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
-from template.weibo_utils import (
-    create_processes,
-    pick_rand_ele_from_list
-)
+from zc_spider.weibo_utils import create_processes
 from weibo_follow_spider import WeiboFollowSpider
 from weibo_follow_writer import WeiboFollowWriter
 

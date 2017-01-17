@@ -5,7 +5,6 @@ import time
 import redis
 import random
 import pickle
-import argparse
 import traceback
 from datetime import datetime as dt
 import multiprocessing as mp
@@ -13,7 +12,6 @@ from requests.exceptions import ConnectionError
 from zc_spider.weibo_config import (
     NORMAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
     WEIBO_ACCOUNT_PASSWD, INACTIVE_USER_CACHE,
-    TOPIC_URL_CACHE, TOPIC_INFO_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
@@ -36,7 +34,7 @@ else:
     raise Exception("Unknown Environment, Check it now...")
 
 TEST_CURL_SER = "curl 'http://d.weibo.com/' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Cache-Control: max-age=0' -H 'Cookie: _T_WM=52765f5018c5d34c5f77302463042cdf; ALF=1484204272; SUB=_2A251S-ugDeTxGeNH41cV8CbLyTWIHXVWt_XorDV8PUJbkNAKLWbBkW0_fe7_8gLTd0veLjcMNIpRdG9dKA..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WhZLMdo2m4y1PHxGYdNTkzk5JpX5oz75NHD95Qf1KnfSh5RS0z4Ws4Dqcj_i--ciKLsi-z0i--RiK.pi-2pi--ci-zfiK.0i--fi-zEi-zRi--ciKy2i-2E; TC-Page-G0=cdcf495cbaea129529aa606e7629fea7' -H 'Connection: keep-alive' --compressed"
-CURRENT_ACCOUNT = ''
+
 
 
 def user_info_generator(cache):
