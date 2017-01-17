@@ -9,7 +9,7 @@ from datetime import datetime as dt
 import multiprocessing as mp
 from requests.exceptions import ConnectionError
 from template.weibo_config import (
-    WEIBO_MANUAL_COOKIES, MANUAL_COOKIES,
+    WEIBO_NORMAL_COOKIES, MANUAL_COOKIES,
     WEIBO_ACCOUNT_PASSWD, 
     JOBS_QUEUE, RESULTS_QUEUE,
     DEPRECATE_FOLLOW, INSERT_FOLLOW_SQL,
@@ -54,7 +54,7 @@ def user_info_generator(cache1, cache2):
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            spider.use_cookie_from_curl(WEIBO_NORMAL_COOKIES[account])
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             f_list = spider.get_user_follow_list()
@@ -111,7 +111,7 @@ def add_jobs(cache):
             account = pick_rand_ele_from_list(all_account)
             spider = WeiboFollowSpider(job+'/follow?page=1', account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.add_request_header()
-            spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+            spider.use_cookie_from_curl(WEIBO_NORMAL_COOKIES[account])
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             spider.gen_html_source()
             for ind in range(spider.get_max_page_no()):
@@ -157,7 +157,7 @@ def single_process():
         spider = WeiboFollowSpider(job, account, 'tttt5555', timeout=20)
         spider.use_abuyun_proxy()
         spider.add_request_header()
-        spider.use_cookie_from_curl(WEIBO_MANUAL_COOKIES[account])
+        spider.use_cookie_from_curl(WEIBO_NORMAL_COOKIES[account])
         # spider.use_cookie_from_curl(TEST_CURL_SER)
         spider.gen_html_source()
         f_list = spider.get_user_follow_list()
