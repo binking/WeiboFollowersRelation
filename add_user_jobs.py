@@ -32,6 +32,7 @@ def add_jobs(target):
     dao = WeiboFollowWriter(USED_DATABASE)
     for job in dao.read_user_url_from_db():  # iterate
         todo += 1
+        urls = []
         for ind in range(5):  # suppose 5 pages
             urls.append('%s/follow?page=%d' % (job, ind+1))
         for url in urls:
