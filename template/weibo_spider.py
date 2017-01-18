@@ -4,6 +4,7 @@ import re
 import json
 import time
 import redis
+import random
 import base64
 import requests
 import traceback
@@ -12,20 +13,15 @@ from datetime import datetime as dt
 from bs4 import BeautifulSoup as bs
 from tornado import httpclient, gen, ioloop, queues
 from requests.exceptions import (
-    ProxyError,
-    Timeout,
-    ConnectionError,
-    ConnectTimeout,
+    ProxyError, Timeout, ConnectionError, ConnectTimeout,
 )
 from template.weibo_utils import (
     extract_cookie_from_curl,
     extract_chinese_info,
     extract_post_data_from_curl,
     gen_abuyun_proxy, 
-    handle_proxy_error, 
-    handle_sleep, 
-    catch_network_error, 
-    retry
+    handle_proxy_error, handle_sleep, 
+    catch_network_error, retry
 )
 from weibo_config import *
 
@@ -141,16 +137,21 @@ class Spider(object):
         self.proxy = gen_abuyun_proxy()
     
     def add_request_header(self):
-        self.headers = {
-            'Connection': 'keep-alive',
-            'Cache-Control': 'max-age=0',
-            'Upgrade-Insecure-Requests': '1',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            # 'Referer': 'http://weibo.com/sorry?pagenotfound&',
-            'Accept-Encoding': 'gzip, deflate, sdch',
-            'Accept-Language': 'zh-CN,zh;q=0.8',
-        }
+        rand_user_agent = random.choice(USER_AGENTS)
+        if not rand_user_agent:
+            print "Cannot get random user agent..."
+        else:
+            self.headers = {
+                'Host': 'weibo.com',
+                'Connection': 'keep-alive',
+                'Cache-Control': 'max-age=0',
+                'Upgrade-Insecure-Requests': '1',
+                'User-Agent': rand_user_agent,
+                'Upgrade-Insecure-Requests': '1',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, sdch',
+                'Accept-Language': 'zh-CN,zh;q=0.8',
+            }
 
     def extract_cookie_from_curl(self):
         cookie_dict = {}
@@ -302,7 +303,6 @@ class WeiboSpider(Spider):
         cookie_num = rconn.hlen(ACTIVATED_COOKIE)
         print "The num of the cookies left is %s" % cookie_num
 
-    # @catch_network_error(exc_list)
     @retry(exc_list, tries=2, delay=3, backoff=2)
     def gen_html_source(self):
         """
@@ -322,19 +322,21 @@ class WeiboSpider(Spider):
             # http://weibo.com/sorry?userblock&is_viewer&code=20003
             print '抱歉，您当前访问的帐号异常，暂时无法访问。(20003): %s' % self.url
             return 20003
+        elif len(info_response.history) > 1:
+            for redirect in info_response.history:
+                if redirect.status_code == 302:
+                    print "302 Temporarily Moved: ", self.url
         elif info_response.status_code == 429:
-            raise ConnectionError("Hey, guy, too many requests")
+            raise ConnectionError("429 Too many requests: " + self.url)
         elif len(text) == 0:
-            print 'Access nothing back'
+            print 'Access nothing back: ', self.url
         elif len(text) < 10000:  # Let IndexError disappear
-            print >>open('./html/block_error_%s_%s.html' % (self.account, now_time), 'w'), text
-            raise ConnectionError('Hey, boy, you were blocked..')
+            raise ConnectionError('Blocked: ' + self.account)
         elif text.find('<title>404错误</title>') > 0:  # <title>404错误</title>
-            print >>open('./html/freezed_account_%s_%s.html' % (self.account, now_time), 'w'), text
-            raise ConnectionError('The account were freezed')
+            raise ConnectionError('Freezed: ' + self.account)
         elif 16000<len(info_response.text)<18000:
-            print >>open('./html/ghost_error_%s_%s.html' % (self.account, now_time), 'w'), text
-            raise ConnectionError('Ghost Error, incorrect source code but not freezed')
+            raise ConnectionError('Short source code: ' + self.account)
+
         if info_response.status_code == 200:
             self.page = text
         time.sleep(self.delay)
