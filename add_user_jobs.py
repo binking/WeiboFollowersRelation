@@ -32,11 +32,14 @@ def add_jobs(target):
     dao = WeiboFollowWriter(USED_DATABASE)
     for job in dao.read_user_url_from_db():  # iterate
         todo += 1
-        if target.lrem(FOLLOWS_JOBS_CACHE, 0, job):
-            # the job had existed in the queue
-            target.lpush(FOLLOWS_JOBS_CACHE, job)
-        else:
-            target.rpush(FOLLOWS_JOBS_CACHE, job)
+        for ind in range(5):  # suppose 5 pages
+            urls.append('%s/follow?page=%d' % (job, ind+1))
+        for url in urls:
+            if target.lrem(FOLLOWS_JOBS_CACHE, 0, url):
+                target.lpush(FOLLOWS_JOBS_CACHE, url)
+            else:
+                target.rpush(FOLLOWS_JOBS_CACHE, url)
+            # target.rpush(FOLLOWS_JOBS_CACHE, job)
     print 'There are totally %d jobs to process' % todo
     return todo
 
