@@ -63,16 +63,19 @@ class WeiboFollowSpider(WeiboSpider):
             # print >>open('./html/unknown_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), parser
         target_script = [sc for sc in parser.find_all('script') if 'follow_list' in sc.text]
         if not (target_script and name_script):
+            print "WHOLE PARSE ERROR(%s) ..." % (self.url)
             # print >>open('./html/whole_parse_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), parser
             return follow_list
         script_parser = bs(json.loads(target_script[0].text[8:-1])['html'], 'html.parser')
         name_parser = bs(json.loads(name_script[0].text[8:-1])['html'], 'html.parser')
         follow_parser = script_parser.find('ul', {'class': 'follow_list', 'node-type': 'userListBox'})
         if not (follow_parser and name_parser and follow_parser):
+            print "FOLLOW PARSE ERROR(%s) ..." % (self.url)
             # print >>open('./html/follows_parse_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), follow_parser
             return follow_list
         myname = name_parser.find('div', {'class': 'pf_username'}).text.encode('utf8').strip()
         if not myname:
+            print "NAME PARSE ERROR(%s) ..." % (self.url)
             # print >>open('./html/name_parse_error_%s.html' % dt.now().strftime("%Y-%m-%d %H:%M:%S"), 'w'), name_parser
             return follow_list
         # parse list of follows
