@@ -45,9 +45,9 @@ def add_jobs(target):
     return todo
 
 if __name__=='__main__':
-    print "\n\n" + "%s Began Scraped Weibo Tweets" % dt.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
+    print "\n\n" + "%s Began Scraped Weibo User Follows" % dt.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
     start = time.time()
     r = redis.StrictRedis(**USED_REDIS)
     add_jobs(r)
-    print "*"*10, "Totally Scraped Weibo Tweets Time Consumed : %d seconds" % (time.time() - start), "*"*10
+    print "*"*10, "Totally Time Consumed : %d seconds" % (time.time() - start), "*"*10
     

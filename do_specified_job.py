@@ -112,8 +112,7 @@ def add_jobs(cache):
     for job in jobs: 
         todo += 1
         for ind in range(5):  # suppose 5 pages
-            pass
-            # cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
+            cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
     print 'There are totally %d jobs to process' % todo
     return todo
 

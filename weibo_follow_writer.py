@@ -109,6 +109,3 @@ class WeiboFollowWriter(DBAccesor):
                 todo_list.append(res[0])
         return todo_list
         '''
-        
-        
-

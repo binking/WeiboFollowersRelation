@@ -34,7 +34,7 @@ elif 'centos' in os.environ.get('HOSTNAME'):
 else:
     raise Exception("Unknown Environment, Check it now...")
 
-TEST_CURL_SER = "curl 'http://d.weibo.com/' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Cache-Control: max-age=0' -H 'Cookie: _T_WM=52765f5018c5d34c5f77302463042cdf; ALF=1484204272; SUB=_2A251S-ugDeTxGeNH41cV8CbLyTWIHXVWt_XorDV8PUJbkNAKLWbBkW0_fe7_8gLTd0veLjcMNIpRdG9dKA..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WhZLMdo2m4y1PHxGYdNTkzk5JpX5oz75NHD95Qf1KnfSh5RS0z4Ws4Dqcj_i--ciKLsi-z0i--RiK.pi-2pi--ci-zfiK.0i--fi-zEi-zRi--ciKy2i-2E; TC-Page-G0=cdcf495cbaea129529aa606e7629fea7' -H 'Connection: keep-alive' --compressed"
+TEST_CURL_SER = "curl 'http://weibo.com/p/1005051791434577/follow?page=5' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Cache-Control: max-age=0' -H 'Cookie: _T_WM=dfbc5c548bac6a6a5e37d19076c4c674; ALF=1484881079; SUB=_2A251XZ_nDeTxGeNH41YS9C7EyzyIHXVWoSGvrDV8PUJbkNAKLWTCkW2NPaiM8gFhxA0bsw3KWB6ZhjO72A..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5jjvRuP4Nkie-qT9gjG1GY5NHD95Qf1KnXe0B71h57Ws4Dqcj_i--4iKLFi-zci--NiKnpi-8Fi--ciKLhi-8Wi--ciKL2iKn0i--fi-iFi-iW; TC-Page-G0=b05711a62e11e2c666cc954f2ef362fb; _s_tentry=-; Apache=9691795277147.832.1482289229381; SINAGLOBAL=9691795277147.832.1482289229381; ULV=1482289229395:1:1:1:9691795277147.832.1482289229381:; TC-V5-G0=6fd5dedc9d0f894fec342d051b79679e' -H 'Connection: keep-alive' --compressed"
 
 def user_info_generator(cache1, cache2):
     """
@@ -49,7 +49,8 @@ def user_info_generator(cache1, cache2):
             all_account = cache1.hkeys(MANUAL_COOKIES)
             if not all_account:  # no any weibo account
                 raise Exception('All of your accounts were Freezed')
-            account = pick_rand_ele_from_list(all_account)
+            # account = pick_rand_ele_from_list(all_account)
+            account = "qianldbf6835@163.com"
             # operate spider
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
@@ -72,7 +73,7 @@ def user_info_generator(cache1, cache2):
                     # format sql and push them into result queue
                     cache2.rpush(RESULTS_QUEUE, '%s||%s' % (d_sql, i_sql))  # push ele to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
-            cache1.rpush(JOBS_QUEUE, job) # put job back
+            # cache1.rpush(JOBS_QUEUE, job) # put job back
             print 'Raised in gen process', str(e)
         except KeyboardInterrupt as e:
             break
@@ -151,14 +152,19 @@ def run_all_worker():
 
 def single_process():
     cache = redis.StrictRedis(**USED_REDIS)
-    account = "liekeoth27678@163.com"
+    account = "jiedaf7816@163.com"
     for _ in range(5):
         job = cache.blpop(JOBS_QUEUE, 0)[1]
         spider = WeiboFollowSpider(job, account, 'tttt5555', timeout=20)
         spider.use_abuyun_proxy()
         spider.add_request_header()
+<<<<<<< HEAD
+        # spider.use_cookie_from_curl(cache.hget(MANUAL_COOKIES, account))
+        spider.use_cookie_from_curl(TEST_CURL_SER)
+=======
         spider.use_cookie_from_curl(WEIBO_NORMAL_COOKIES[account])
         # spider.use_cookie_from_curl(TEST_CURL_SER)
+>>>>>>> baba8f8282af3d5509ee0f916173bb11b6e70da4
         spider.gen_html_source()
         f_list = spider.get_user_follow_list()
         for f in f_list:

@@ -195,7 +195,7 @@ class Spider(object):
         return post_data
 
     # @catch_network_error(exc_list)
-    @retry(exc_list, tries=4, delay=2, backoff=2)
+    # @retry(exc_list, tries=4, delay=2, backoff=2)
     def gen_html_source(self, method='python'):
         """
         Separate get page and parse page
@@ -244,7 +244,7 @@ class WeiboSpider(Spider):
         # curl = "curl 'http://weibo.com/1791434577/info' -H 'Accept-Encoding: gzip, deflate, sdch' -H 'Accept-Language: zh-CN,zh;q=0.8' -H 'Upgrade-Insecure-Requests: 1' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8' -H 'Cache-Control: max-age=0' -H 'Cookie: _T_WM=091a7f8021abc37974cfbb8fc47e6ba3; ALF=1484106233; SUB=_2A251SmypDeTxGeNG71EX8ybKwj6IHXVWtXThrDV8PUJbkNAKLUb_kW1_1M3WyDkt9alEMQg5hlJuRoq9kg..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5HA7SsRPVzLQ_q6ucc2n_c5JpX5oz75NHD95Qf1hB0SoeRSo.EWs4Dqcj6i--ciK.Ni-27i--ciKnRiK.pi--Xi-z4iKyFi--4iK.Ri-z0i--ciK.RiKy8i--fi-z7iK.pi--fi-z4i-zX; TC-Ugrow-G0=968b70b7bcdc28ac97c8130dd353b55e; wvr=6; TC-V5-G0=7975b0b5ccf92b43930889e90d938495; TC-Page-G0=4c4b51307dd4a2e262171871fe64f295' -H 'Connection: keep-alive' --compressed"
         self.cookie = extract_cookie_from_curl(curl)
 
-    @retry(exc_list, tries=3, delay=3, backoff=2)
+    # @retry(exc_list, tries=3, delay=3, backoff=2)
     def gen_cookie(self, rconn):
         """ 
         获取一个账号的Cookie
