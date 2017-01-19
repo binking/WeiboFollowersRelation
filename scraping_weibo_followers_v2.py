@@ -42,18 +42,23 @@ def user_info_generator(cache):
     Producer for users(cache) and follows(cache2), Consummer for topics
     """
     error_count = 0
+    loop_count = 0
     cp = mp.current_process()
     while True:
         res = {}
+        loop_count += 1
         if error_count > 999:
             print '>'*10, 'Exceed 1000 times of gen errors', '<'*10
             break
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Generate Follow Process pid is %d" % (cp.pid)
         job = cache.blpop(FOLLOWS_JOBS_CACHE, 0)[1]   # blpop 获取队列数据
-        all_account = cache.hkeys(NORMAL_COOKIES)
-        account = random.choice(all_account)
         try:
             # operate spider
+            all_account = cache.hkeys(NORMAL_COOKIES)
+            if len(all_account) == 0:
+                time.sleep(pow(2, loop_count))
+                continue
+            account = random.choice(all_account)
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
@@ -67,7 +72,7 @@ def user_info_generator(cache):
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(follow))  # push string to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             cache.rpush(FOLLOWS_JOBS_CACHE, job) # put job back
-            print 'Parse %s with %s Error: ' % (job, account)
+            print 'Parse %s Error: ' % job
             print str(e)
             error_count += 1
         except KeyboardInterrupt as e:
