@@ -38,7 +38,9 @@ class WeiboFollowWriter(DBAccesor):
                 res['date'], res['url'], res['usercard']
             )):
                 print '$'*10, 'Write follow info succeeded !'
-                conn.commit(); 
+                conn.commit()
+            else:
+                print "Existed"
             cursor.close(); conn.close()
         except Exception as e:
             traceback.print_exc()
