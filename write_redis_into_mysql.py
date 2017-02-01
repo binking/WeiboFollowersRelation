@@ -45,9 +45,9 @@ def user_db_writer(cache):
     cp = mp.current_process()
     dao = WeiboFollowWriter(USED_DATABASE)
     while True:
-        if error_count > 999:
-            print '>'*10, 'Exceed 1000 times of write errors', '<'*10
-            break
+        # if error_count > 999:
+        #     print '>'*10, 'Exceed 1000 times of write errors', '<'*10
+        #     break
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
         res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
