@@ -72,52 +72,12 @@ def user_info_generator(cache):
                 cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(follow))  # push string to the tail
         except Exception as e:  # no matter what was raised, cannot let process died
             cache.rpush(FOLLOWS_JOBS_CACHE, job) # put job back
-            print 'Parse %s Error: ' % job
-            print str(e)
+            print 'Parse %s Error: ' % job + str(e)
             error_count += 1
         except KeyboardInterrupt as e:
+            print "Interrupted in Spider process"
+            cache.rpush(FOLLOWS_JOBS_CACHE, job) # put job back
             break
-
-
-def user_db_writer(cache):
-    """
-    Consummer for topics
-    """
-    error_count = 0
-    cp = mp.current_process()
-    dao = WeiboFollowWriter(USED_DATABASE)
-    while True:
-        if error_count > 999:
-            print '>'*10, 'Exceed 1000 times of write errors', '<'*10
-            break
-        print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
-        res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
-        try:
-            res = pickle.loads(res)
-            if not isinstance(res, dict) and len(str(res)) > 10000:
-                print str(res).replace('\\', '')
-                continue
-            dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
-        except Exception as e:  # won't let you died
-            print 'Failed to write result: ', len(pickle.loads(res))
-            error_count += 1
-            if len(str(pickle.loads(res))) < 10000:
-                cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
-        except KeyboardInterrupt as e:
-            break
-            
-
-def add_jobs(cache):
-    todo = 0
-    print "Adding jobs into redis....."
-    dao = WeiboFollowWriter(USED_DATABASE)
-    jobs = dao.read_user_url_from_db()
-    for job in jobs: 
-        todo += 1
-        for ind in range(5):  # suppose 5 pages
-            cache.rpush(FOLLOWS_JOBS_CACHE, '%s/follow?page=%d' % (job, ind+1))
-    print 'There are totally %d jobs to process' % todo
-    return todo
 
 
 def run_all_worker():
@@ -125,13 +85,11 @@ def run_all_worker():
     print "Redis have %d records in cache" % job_cache.llen(FOLLOWS_JOBS_CACHE)
     job_pool = mp.Pool(processes=8,
         initializer=user_info_generator, initargs=(job_cache, ))
-    # result_pool = mp.Pool(processes=4, 
-    #     initializer=user_db_writer, initargs=(job_cache, ))
     cp = mp.current_process()
     print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Run All Works Process pid is %d" % (cp.pid)
     try:
-        job_pool.close(); # result_pool.close()
-        job_pool.join(); # result_pool.join()
+        job_pool.close()
+        job_pool.join()
     except Exception as e:
         traceback.print_exc()
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Exception raise in runn all Work"

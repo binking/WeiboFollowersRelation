@@ -49,22 +49,23 @@ def user_db_writer(cache):
         #     print '>'*10, 'Exceed 1000 times of write errors', '<'*10
         #     break
         print dt.now().strftime("%Y-%m-%d %H:%M:%S"), "Write Follow Process pid is %d" % (cp.pid)
-        res = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
+        temp = cache.blpop(FOLLOWS_RESULTS_CACHE, 0)[1]
         try:
-            res = pickle.loads(res)
+            res = pickle.loads(temp)
             if not isinstance(res, dict) and len(str(res)) > 10000:
                 print str(res).replace('\\', '')
                 continue
             dao.insert_follow_into_db(res)   # ////// broken up, cuz res is string
         except Exception as e:  # won't let you died
             pickle_len = len(str(res))
-            print 'Failed to write result: ', pickle_len
-            print error_count
+            print 'Failed to write result: %d, there was %d times of errors' % (pickle_len, error_count)
             error_count += 1
             if pickle_len < 10000 and pickle_len != 440:
-                cache.rpush(FOLLOWS_RESULTS_CACHE, pickle.dumps(res))
+                cache.rpush(FOLLOWS_RESULTS_CACHE, temp)
             time.sleep(2)
         except KeyboardInterrupt as e:
+            print "Interrupted in Write process"
+            cache.rpush(FOLLOWS_RESULTS_CACHE, temp)
             break
 
 
@@ -84,9 +85,9 @@ def run_multiple_writer():
         p.close()
         p.join()
     except Exception as e:
-        print str(e)
+        print "Exception Occured: " + str(e)
     except KeyboardInterrupt as e:
-        print str(e)
+        print "Interrupted by You: " + str(e)
     print "All done"
 
 if __name__=="__main__":
