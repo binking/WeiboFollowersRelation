@@ -51,7 +51,7 @@ class WeiboFollowWriter(DBAccesor):
     def read_user_url_from_db(self):
         select_user_sql = """
             SELECT DISTINCT wu.weibo_user_url
-            FROM topicinfo t, topicweiborelation tw, weibocomment wc, weibouser wu  
+            FROM WeiboTopic t, topicweiborelation tw, weibocomment wc, weibouser wu  
             WHERE t.topic_url = tw.topic_url 
             AND tw.weibo_url = wc.weibo_url 
             AND wc.weibocomment_author_url = wu.weibo_user_url 
