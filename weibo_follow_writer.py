@@ -56,6 +56,9 @@ class WeiboFollowWriter(DBAccesor):
             AND tw.weibo_url = wc.weibo_url 
             AND wc.weibocomment_author_url = wu.weibo_user_url 
             AND wu.createdate > DATE_SUB(DATE(now()), INTERVAL '1' DAY)
+            AND NOT EXISTS (
+            SELECT * FROM WeiboUserFollows WHERE weibo_user_url=wu.weibo_user_url
+            )
         """
         conn = self.connect_database()
         cursor = conn.cursor()
