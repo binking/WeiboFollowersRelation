@@ -81,7 +81,7 @@ def run_multiple_writer():
         #     threads[i].start()
         # for i in range(8):
         #     threads[i].join()
-        p = mp.Pool(processes=1, initializer=user_db_writer, initargs=(result_cache, ))
+        p = mp.Pool(processes=4, initializer=user_db_writer, initargs=(result_cache, ))
         p.close()
         p.join()
     except Exception as e:
