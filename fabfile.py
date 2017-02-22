@@ -2,9 +2,9 @@
 from fabric.api import *
 from zc_spider.weibo_config import SERVER_LIST, SERVER_LOGIN_INFO
 
-env.hosts=
+env.hosts = SERVER_LIST
 
-env.passwords = 
+env.passwords = SERVER_LOGIN_INFO
 
 def update():
     with cd('/PythonProject/WeiboFollowersRelation'):
