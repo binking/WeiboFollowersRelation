@@ -10,7 +10,7 @@ from datetime import datetime as dt
 import multiprocessing as mp
 from requests.exceptions import ConnectionError
 from zc_spider.weibo_config import (
-    NORMAL_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
+    WEIBO_COOKIES, FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
     WEIBO_ACCOUNT_PASSWD, INACTIVE_USER_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
@@ -54,7 +54,7 @@ def user_info_generator(cache):
         job = cache.blpop(FOLLOWS_JOBS_CACHE, 0)[1]   # blpop 获取队列数据
         try:
             # operate spider
-            all_account = cache.hkeys(NORMAL_COOKIES)
+            all_account = cache.hkeys(WEIBO_COOKIES)
             if len(all_account) == 0:
                 time.sleep(pow(2, loop_count))
                 continue
@@ -62,7 +62,7 @@ def user_info_generator(cache):
             spider = WeiboFollowSpider(job, account, WEIBO_ACCOUNT_PASSWD, timeout=20)
             spider.use_abuyun_proxy()
             spider.add_request_header()
-            spider.use_cookie_from_curl(cache.hget(NORMAL_COOKIES, account))
+            spider.use_cookie_from_curl(cache.hget(WEIBO_COOKIES, account))
             # spider.use_cookie_from_curl(TEST_CURL_SER)
             status = spider.gen_html_source()
             if status in [404, 20003]:
