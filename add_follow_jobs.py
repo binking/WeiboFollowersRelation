@@ -6,7 +6,7 @@ import time
 import redis
 from datetime import datetime as dt
 from zc_spider.weibo_config import (
-    FOLLOWS_JOBS_CACHE,  # weibo:blog:urls
+    FOLLOWS_JOBS_CACHE, FOLLOWS_RESULTS_CACHE,
     QCLOUD_MYSQL, OUTER_MYSQL,
     LOCAL_REDIS, QCLOUD_REDIS
 )
@@ -48,6 +48,7 @@ if __name__=='__main__':
     print "\n\n" + "%s Began Scraped Weibo User Follows" % dt.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
     start = time.time()
     r = redis.StrictRedis(**USED_REDIS)
+    if r.llen(FOLLOWS_JOBS_CACHE) > 64 or r.llen(FOLLOWS_RESULTS_CACHE) > 1000
     add_jobs(r)
     print "*"*10, "Totally Time Consumed : %d seconds" % (time.time() - start), "*"*10
     
